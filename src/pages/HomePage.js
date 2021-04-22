@@ -9,29 +9,50 @@ const limit = 9;
 const BACKEND_API = process.env.REACT_APP_BACKEND_API;
 
 const HomePage = () => {
-  const [pageNum, setPageNum] = useState();
+  const [query, setQuery] = useState("");
 
+  const [pageNum, setPageNum] = useState(1);
   const [books, setBooks] = useState([]);
-  useEffect(() => {
-    async function fetchBooks() {
-      const response = await fetch(
-        `${BACKEND_API}/books?_page=${pageNum}&_limit=${limit}`
-      );
-      const json = await response.json();
-      console.log({ json });
-      setBooks(json);
-      setPageNum(totalPageNum);
+
+  async function fetchBooks() {
+    let urlParams = `?_page${pageNum}&_limit=${limit}`;
+    if (query !== "") {
+      urlParams = urlParams + `&q=${query}`;
     }
+    const response = await fetch(`${BACKEND_API}/books${urlParams}`);
+
+    const json = await response.json();
+    console.log({ query });
+    setBooks(json);
+    setPageNum(totalPageNum);
+  }
+  const onSearchBooks = (e) => {
+    setQuery(e.target.value);
+    fetchBooks();
+  };
+
+  const onButtonSearch = (e) => {
+    e.preventDefault();
+    setQuery(e.target.value);
+    fetchBooks();
+  };
+
+  useEffect(() => {
     fetchBooks();
   }, []);
   return (
     <div className="container">
-      <Form className="mt-5">
-        <Form.Group controlId="formBasicEmail">
-          <Form.Control type="email" placeholder="Search your books here!" />
+      <Form className="mt-5" onChange={onSearchBooks}>
+        <Form.Group controlId="text">
+          <Form.Control type="text" placeholder="Search your books here!" />
         </Form.Group>
 
-        <Button variant="danger" type="submit">
+        <Button
+          variant="danger"
+          type="submit"
+          className="shadow-lg rounded"
+          onClick={onButtonSearch}
+        >
           Search
         </Button>
       </Form>
@@ -55,7 +76,7 @@ const HomePage = () => {
                   </Card.Text>
                   <Card.Text>- Year {b.year}</Card.Text>
                   <Card.Text>Language: {b.language}</Card.Text>
-                  <Nav.Link as={Link} to="/books/id">
+                  <Nav.Link as={Link} to={"/books/" + b.id}>
                     <Button
                       variant="primary"
                       className="
